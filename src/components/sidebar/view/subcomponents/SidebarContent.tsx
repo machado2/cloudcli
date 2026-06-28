@@ -13,6 +13,7 @@ import { getAllSessions } from '../../utils/utils';
 import SidebarFooter from './SidebarFooter';
 import SidebarHeader from './SidebarHeader';
 import SidebarProjectList, { type SidebarProjectListProps } from './SidebarProjectList';
+import SidebarFlatSessionList from './SidebarFlatSessionList';
 
 function HighlightedSnippet({ snippet, highlights }: { snippet: string; highlights: { start: number; end: number }[] }) {
   const parts: ReactNode[] = [];
@@ -147,6 +148,8 @@ type SidebarContentProps = {
   currentVersion: string;
   onShowVersionModal: () => void;
   onShowSettings: () => void;
+  groupByProject: boolean;
+  onToggleGroupByProject: () => void;
   projectListProps: SidebarProjectListProps;
   t: TFunction;
 };
@@ -185,12 +188,20 @@ export default function SidebarContent({
   currentVersion,
   onShowVersionModal,
   onShowSettings,
+  groupByProject,
+  onToggleGroupByProject,
   projectListProps,
   t,
 }: SidebarContentProps) {
   const showConversationSearch = searchMode === 'conversations' && searchFilter.trim().length >= 2;
   const hasPartialResults = conversationResults && conversationResults.results.length > 0;
   const groupedArchivedSessions = groupArchivedSessionsByProject(archivedSessions);
+  const renderProjectList = () =>
+    groupByProject ? (
+      <SidebarProjectList {...projectListProps} />
+    ) : (
+      <SidebarFlatSessionList {...projectListProps} />
+    );
 
   return (
     <div
@@ -214,6 +225,8 @@ export default function SidebarContent({
         isRefreshing={isRefreshing}
         onCreateProject={onCreateProject}
         onCollapseSidebar={onCollapseSidebar}
+        groupByProject={groupByProject}
+        onToggleGroupByProject={onToggleGroupByProject}
         t={t}
       />
 
@@ -344,7 +357,7 @@ export default function SidebarContent({
                   {runningSessionsCount}
                 </span>
               </div>
-              <SidebarProjectList {...projectListProps} />
+              {renderProjectList()}
             </div>
           )
         ) : searchMode === 'archived' ? (
@@ -549,7 +562,7 @@ export default function SidebarContent({
             </div>
           )
         ) : (
-          <SidebarProjectList {...projectListProps} />
+          renderProjectList()
         )}
       </ScrollArea>
 

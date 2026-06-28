@@ -124,6 +124,7 @@ export default function SidebarProjectSessions({
               session={session}
               selectedSession={selectedSession}
               isProcessing={activeSessions.has(session.id)}
+              sessionActivity={activeSessions.get(session.id) ?? null}
               currentTime={currentTime}
               editingSession={editingSession}
               editingSessionName={editingSessionName}

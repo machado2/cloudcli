@@ -19,6 +19,25 @@ type CreateAppSessionResult = {
   projectPath: string;
 };
 
+/**
+ * Resolver that reports the pending tool-approval requests for a provider-native
+ * session id. Injected at startup (see `setPendingApprovalsResolver`) so the
+ * sessions service can flag "waiting for input" sessions without depending on a
+ * specific provider runtime. Defaults to "no pending approvals".
+ */
+let pendingApprovalsResolver: (providerSessionId: string) => unknown[] = () => [];
+
+/**
+ * Wires the provider-runtime pending-approvals lookup into the sessions service.
+ * Called from the composition root (server/index.js) with the Claude SDK's
+ * `getPendingApprovalsForSession`.
+ */
+export function setPendingApprovalsResolver(
+  resolver: (providerSessionId: string) => unknown[],
+): void {
+  pendingApprovalsResolver = resolver;
+}
+
 type ArchivedSessionListItem = {
   sessionId: string;
   provider: LLMProvider;
@@ -96,8 +115,30 @@ export const sessionsService = {
     provider: LLMProvider;
     startedAt: number;
     lastSeq: number;
+    waitingForInput: boolean;
   }> {
-    return chatRunRegistry.listRunningRuns();
+    return chatRunRegistry.listRunningRuns().map((run) => {
+      // A run is "waiting for input" when the provider runtime has parked one or
+      // more tool-approval requests for its provider-native session. The mapping
+      // is provider-native-id keyed, so runs that have not announced their id yet
+      // simply report no pending approvals.
+      let waitingForInput = false;
+      if (run.providerSessionId) {
+        try {
+          waitingForInput = pendingApprovalsResolver(run.providerSessionId).length > 0;
+        } catch {
+          waitingForInput = false;
+        }
+      }
+
+      return {
+        sessionId: run.sessionId,
+        provider: run.provider,
+        startedAt: run.startedAt,
+        lastSeq: run.lastSeq,
+        waitingForInput,
+      };
+    });
   },
 
   /**

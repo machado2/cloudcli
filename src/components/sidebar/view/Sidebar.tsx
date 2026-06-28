@@ -48,7 +48,7 @@ function Sidebar({
     'claudecodeui',
   );
   const { preferences, setPreference } = useUiPreferences();
-  const { sidebarVisible } = preferences;
+  const { sidebarVisible, groupSessionsByProject } = preferences;
   const { setCurrentProject, mcpServerStatus } = useTaskMaster() as TaskMasterSidebarContext;
   const { tasksEnabled } = useTasksSettings();
   const paletteOps = usePaletteOps();
@@ -303,6 +303,8 @@ function Sidebar({
             currentVersion={currentVersion}
             onShowVersionModal={() => setShowVersionModal(true)}
             onShowSettings={onShowSettings}
+            groupByProject={groupSessionsByProject}
+            onToggleGroupByProject={() => setPreference('groupSessionsByProject', !groupSessionsByProject)}
             projectListProps={projectListProps}
             t={t}
           />

@@ -291,7 +291,9 @@ export function useChatRealtimeHandlers({
             }
           }
           if (sid) {
-            onSessionProcessing?.(sid);
+            // Park the sidebar status on "waiting for input" until the prompt
+            // is answered or cancelled.
+            onSessionProcessing?.(sid, { waitingForInput: true });
           }
           break;
         }
@@ -304,6 +306,13 @@ export function useChatRealtimeHandlers({
 
             pendingPermissionRequestsRef.current = nextPendingPermissionRequests;
             setPendingPermissionRequests(nextPendingPermissionRequests);
+          }
+          if (sid) {
+            // Clear the waiting flag once no prompt remains for the viewed run;
+            // background runs only ever surface one prompt at a time here.
+            const stillWaiting =
+              sid === activeViewSessionId && pendingPermissionRequestsRef.current.length > 0;
+            onSessionProcessing?.(sid, { waitingForInput: stillWaiting });
           }
           break;
         }

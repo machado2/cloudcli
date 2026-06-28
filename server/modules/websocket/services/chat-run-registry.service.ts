@@ -259,6 +259,7 @@ export const chatRunRegistry = {
   listRunningRuns(): Array<{
     sessionId: string;
     provider: LLMProvider;
+    providerSessionId: string | null;
     startedAt: number;
     lastSeq: number;
   }> {
@@ -267,6 +268,7 @@ export const chatRunRegistry = {
       .map((run) => ({
         sessionId: run.appSessionId,
         provider: run.provider,
+        providerSessionId: run.providerSessionId,
         startedAt: run.startedAt,
         lastSeq: run.lastSeq,
       }));

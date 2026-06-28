@@ -669,6 +669,7 @@ export function useChatComposerState({
       onSessionProcessing?.(targetSessionId, {
         statusText: null,
         canInterrupt: true,
+        waitingForInput: false,
       });
 
       setIsUserScrolledUp(false);

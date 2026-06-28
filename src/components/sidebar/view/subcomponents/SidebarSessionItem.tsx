@@ -1,19 +1,23 @@
 import { useEffect, useRef } from 'react';
-import { Check, Edit2, Loader2, Trash2, X } from 'lucide-react';
+import { Check, Edit2, Trash2, X } from 'lucide-react';
 import type { TFunction } from 'i18next';
 
 import { Badge, Button, Tooltip } from '../../../../shared/view/ui';
 import { cn } from '../../../../lib/utils';
 import type { Project, ProjectSession, LLMProvider } from '../../../../types/app';
+import type { SessionActivity } from '../../../../hooks/useSessionProtection';
 import type { SessionWithProvider } from '../../types/types';
 import { createSessionViewModel } from '../../utils/utils';
 import SessionProviderLogo from '../../../llm-logo-provider/SessionProviderLogo';
+
+import SessionStatusIndicator from './SessionStatusIndicator';
 
 type SidebarSessionItemProps = {
   project: Project;
   session: SessionWithProvider;
   selectedSession: ProjectSession | null;
   isProcessing: boolean;
+  sessionActivity: SessionActivity | null;
   currentTime: Date;
   editingSession: string | null;
   editingSessionName: string;
@@ -65,6 +69,7 @@ export default function SidebarSessionItem({
   session,
   selectedSession,
   isProcessing,
+  sessionActivity,
   currentTime,
   editingSession,
   editingSessionName,
@@ -159,12 +164,13 @@ export default function SidebarSessionItem({
               <div className="flex items-center gap-2">
                 <div className="min-w-0 flex-1 truncate text-xs font-medium text-foreground">{sessionView.sessionName}</div>
                 {isProcessing ? (
-                  <span className="ml-auto flex-shrink-0">
-                    <Tooltip content={t('tooltips.processingSessionIndicator', 'Processing session')} position="top">
-                      <span className="flex h-5 w-5 items-center justify-center rounded-md text-muted-foreground">
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                      </span>
-                    </Tooltip>
+                  <span className="ml-auto flex h-5 w-5 flex-shrink-0 items-center justify-center">
+                    <SessionStatusIndicator
+                      activity={sessionActivity}
+                      isRecentlyActive={false}
+                      t={t}
+                      className="h-3 w-3"
+                    />
                   </span>
                 ) : compactSessionAge && (
                   <span className="ml-auto flex-shrink-0 text-[11px] text-muted-foreground">{compactSessionAge}</span>
@@ -223,15 +229,16 @@ export default function SidebarSessionItem({
                 {isProcessing ? (
                   <span
                     className={cn(
-                      'ml-auto flex-shrink-0 transition-opacity duration-200',
+                      'ml-auto flex h-5 w-5 flex-shrink-0 items-center justify-center transition-opacity duration-200',
                       isEditing ? 'opacity-0' : 'group-hover:opacity-0',
                     )}
                   >
-                    <Tooltip content={t('tooltips.processingSessionIndicator', 'Processing session')} position="top">
-                      <span className="flex h-5 w-5 items-center justify-center rounded-md text-muted-foreground">
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                      </span>
-                    </Tooltip>
+                    <SessionStatusIndicator
+                      activity={sessionActivity}
+                      isRecentlyActive={false}
+                      t={t}
+                      className="h-3 w-3"
+                    />
                   </span>
                 ) : compactSessionAge && (
                   <span

@@ -5,6 +5,11 @@ export interface SessionActivity {
   statusText: string | null;
   canInterrupt: boolean;
   /**
+   * True when the run is parked on a pending tool-approval request and needs
+   * the user to respond. Drives the "waiting for input" sidebar status icon.
+   */
+  waitingForInput: boolean;
+  /**
    * When this request was first marked as processing (client clock). Drives
    * the elapsed-time display and the stale `chat_subscribed` idle-ack guard.
    */
@@ -17,12 +22,13 @@ export type SessionActivitySnapshot = {
   sessionId: string;
   statusText?: string | null;
   canInterrupt?: boolean;
+  waitingForInput?: boolean;
   startedAt?: number;
 };
 
 export type MarkSessionProcessing = (
   sessionId?: string | null,
-  activity?: { statusText?: string | null; canInterrupt?: boolean },
+  activity?: { statusText?: string | null; canInterrupt?: boolean; waitingForInput?: boolean },
 ) => void;
 
 export type MarkSessionIdle = (
@@ -50,6 +56,7 @@ const sessionActivityMapsMatch = (
       !rightActivity
       || leftActivity.statusText !== rightActivity.statusText
       || leftActivity.canInterrupt !== rightActivity.canInterrupt
+      || leftActivity.waitingForInput !== rightActivity.waitingForInput
       || leftActivity.startedAt !== rightActivity.startedAt
     ) {
       return false;
@@ -83,6 +90,7 @@ export function useSessionProtection() {
         statusText:
           activity?.statusText !== undefined ? activity.statusText : existing?.statusText ?? null,
         canInterrupt: activity?.canInterrupt ?? existing?.canInterrupt ?? true,
+        waitingForInput: activity?.waitingForInput ?? existing?.waitingForInput ?? false,
         startedAt: existing?.startedAt ?? Date.now(),
       };
 
@@ -90,6 +98,7 @@ export function useSessionProtection() {
         existing
         && existing.statusText === next.statusText
         && existing.canInterrupt === next.canInterrupt
+        && existing.waitingForInput === next.waitingForInput
       ) {
         return prev;
       }
@@ -149,6 +158,7 @@ export function useSessionProtection() {
           statusText:
             snapshot.statusText !== undefined ? snapshot.statusText : existing?.statusText ?? null,
           canInterrupt: snapshot.canInterrupt ?? existing?.canInterrupt ?? true,
+          waitingForInput: snapshot.waitingForInput ?? existing?.waitingForInput ?? false,
           startedAt: snapshotStartedAt ?? existing?.startedAt ?? now,
         });
       }

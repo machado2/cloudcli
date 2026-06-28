@@ -17,6 +17,7 @@ type RunningSessionApiItem = {
   startedAt?: unknown;
   statusText?: unknown;
   canInterrupt?: unknown;
+  waitingForInput?: unknown;
 };
 
 type RunningSessionsApiPayload = {
@@ -106,6 +107,8 @@ function AppContentInner() {
               startedAt: parseStartedAt(session.startedAt),
               statusText: typeof session.statusText === 'string' ? session.statusText : undefined,
               canInterrupt: typeof session.canInterrupt === 'boolean' ? session.canInterrupt : undefined,
+              waitingForInput:
+                typeof session.waitingForInput === 'boolean' ? session.waitingForInput : undefined,
             };
           })
           .filter((session): session is NonNullable<typeof session> => Boolean(session)),

@@ -13,7 +13,7 @@ import mime from 'mime-types';
 import Database from 'better-sqlite3';
 
 import { AppError, WORKSPACES_ROOT, getOpenCodeDatabasePath, validateWorkspacePath } from '@/shared/utils.js';
-import { closeSessionsWatcher, initializeSessionsWatcher } from '@/modules/providers/index.js';
+import { closeSessionsWatcher, initializeSessionsWatcher, setPendingApprovalsResolver } from '@/modules/providers/index.js';
 import { createWebSocketServer } from '@/modules/websocket/index.js';
 
 import { getConnectableHost } from '../shared/networkHosts.js';
@@ -103,6 +103,10 @@ function readUsageNumber(value) {
 
 const app = express();
 const server = http.createServer(app);
+
+// Lets the sessions service flag "waiting for input" running sessions (used by
+// the sidebar status indicators) without coupling it to a provider runtime.
+setPendingApprovalsResolver(getPendingApprovalsForSession);
 
 // Single WebSocket server that handles chat, shell, and plugin proxy paths.
 const wss = createWebSocketServer(server, {
